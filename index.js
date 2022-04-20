@@ -1,20 +1,23 @@
-const ResumeParser = require("cv-parser-multiformats");
+const ResumeParser = require("simple-resume-parser");
 const pdf2html = require("pdf2html");
 const fs = require("fs");
 
-pdf2html.html("sample-resume.pdf", (err, html) => {
+pdf2html.text("sample-resume.pdf", (err, file) => {
   if (err) {
     console.error("Conversion error: " + err);
   } else {
-    fs.writeFile("sample-resume.html", html, function (err) {
+    const temp_html_file_name = "sample-resume.txt";
+    fs.writeFile(temp_html_file_name, file, function (err) {
       if (err) {
         return console.log(err);
       }
 
-      ResumeParser.parseResumeFile("sample-resume.html", ".")
-        .then((file) => {
-          console.log("JSON is written to " + file + ".json");
-          fs.unlinkSync(file);
+      const resume = new ResumeParser(temp_html_file_name);
+      resume
+        .parseToJSON()
+        .then((data) => {
+          console.log("JSON Output: ", data);
+          fs.unlinkSync(temp_html_file_name);
         })
         .catch((error) => {
           console.error(error);
@@ -22,22 +25,3 @@ pdf2html.html("sample-resume.pdf", (err, html) => {
     });
   }
 });
-
-// From file to file
-// ResumeParser.parseResumeFile("PerryResume16.html", ".") // input file, output dir
-//   .then((file) => {
-//     console.log("Yay! " + file);
-//   })
-//   .catch((error) => {
-//     console.error(error);
-//   });
-
-// From URL
-// ResumeParser
-//   .parseResumeUrl('https://showcase-dev-attachmentsbucket-1zd3mf10gr28.s3.amazonaws.com/public/PerryResume16.pdf') // url
-//   .then(data => {
-//     console.log('Yay! ', data);
-//   })
-//   .catch(error => {
-//     console.error(error);
-//   });
